@@ -181,6 +181,9 @@ const MOTION_ITEMS = [
 
 // TESTIMONIALS data removed
 
+// HERO SLIDES data
+
+
 const NAV_LINKS = [
   { label: "Studio", id: "#home" },
   { label: "Portfolio", id: "#portfolio" },
@@ -197,6 +200,7 @@ function App() {
   const [loaderProgress, setLoaderProgress] = useState(0);
   const [isLoaderFinished, setLoaderFinished] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const [activeSection, setActiveSection] = useState("home");
 
   useEffect(() => {
@@ -317,7 +321,7 @@ function App() {
           opacity: 1,
           y: 0,
           filter: "blur(0px)",
-          duration: 1.1,
+          duration: 0.8,
           ease: "power3.out",
           delay: 0.8,
           stagger: 0.15,
@@ -363,7 +367,7 @@ function App() {
 
     if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
       lenis = new Lenis({
-        duration: 1.1,
+        duration: 0.8,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
       });
@@ -904,19 +908,11 @@ function App() {
       <main id="home" className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-20">
         {/* Background Imagery (Parallax Layer 1) */}
         <div className="absolute inset-0 w-full h-full z-0 parallax-layer" ref={heroBgRef}>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
+          <img
+            src={`${import.meta.env.BASE_URL}hero_bg.png`}
+            alt="Studio loft background"
             className="w-full h-full object-cover opacity-50 mix-blend-luminosity"
-            poster={`${import.meta.env.BASE_URL}hero_bg.png`}
-          >
-            <source
-              src="https://assets.mixkit.co/videos/preview/mixkit-photographer-taking-photos-in-a-studio-34281-large.mp4"
-              type="video/mp4"
-            />
-          </video>
+          />
           {/* Gradient Overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent z-10"></div>
         </div>
@@ -924,16 +920,16 @@ function App() {
         {/* Hero Content Grid (Asymmetrical) */}
         <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-20 grid grid-cols-4 md:grid-cols-12 gap-8 h-full items-center">
           {/* Left Typography Block */}
-          <div className="col-span-4 md:col-span-7 flex flex-col justify-center parallax-layer">
+          <div className="col-span-4 md:col-span-6 flex flex-col justify-center parallax-layer">
             <h1 className="text-display-lg-mobile md:text-display-xl font-display-xl text-on-surface uppercase leading-none mix-blend-difference mb-8">
-              <span className="block overflow-hidden"><span className="block transform translate-y-full opacity-0 animate-reveal" style={{ animationDelay: "0.1s" }}>Visual</span></span>
-              <span className="block overflow-hidden"><span className="block transform translate-y-full opacity-0 animate-reveal text-primary" style={{ animationDelay: "0.3s" }}>Poetry</span></span>
+              <span className="block overflow-hidden"><span className="block transform translate-y-full opacity-0 animate-reveal" style={{ animationDelay: "0.05s" }}>Visual</span></span>
+              <span className="block overflow-hidden"><span className="block transform translate-y-full opacity-0 animate-reveal text-primary" style={{ animationDelay: "0.15s" }}>Poetry</span></span>
             </h1>
-            <p className="text-body-lg font-body-lg text-on-surface-variant max-w-md mt-4 animate-fade-in opacity-0" style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}>
+            <p className="text-body-lg font-body-lg text-on-surface-variant max-w-md mt-4 animate-fade-in opacity-0" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
               A specialized studio crafting high-end editorial narratives. We blend architectural precision with raw human emotion.
             </p>
             
-            <div className="mt-12 animate-fade-in opacity-0" style={{ animationDelay: "0.9s", animationFillMode: "forwards" }}>
+            <div className="mt-12 animate-fade-in opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
               <a
                 href="#portfolio"
                 onClick={(e) => handleAnchorClick(e, "#portfolio")}
@@ -948,26 +944,19 @@ function App() {
           </div>
 
           {/* Right Image Offset (Parallax Layer 2) */}
-          <div className="hidden md:block md:col-span-4 md:col-start-9 relative parallax-layer mt-16 flex items-center justify-center">
-            <div className="relative h-[50vh] md:h-[55vh] aspect-[3/4] overflow-hidden group rounded-2xl shadow-2xl">
+          <div className="hidden md:block md:col-span-6 md:col-start-7 relative parallax-layer mt-16 flex items-center justify-center">
+            <div className="relative w-full aspect-[3/2] flex items-center justify-center">
               <img
-                className="object-cover w-full h-full transform scale-105 group-hover:scale-100 transition-transform duration-1000 ease-out filter grayscale group-hover:grayscale-0"
+                className="object-contain w-full h-full filter drop-shadow-[0_25px_45px_rgba(0,0,0,0.9)] transform scale-120 hover:scale-110 transition-transform duration-1000 ease-out"
                 src={`${import.meta.env.BASE_URL}hero_detail.png`}
                 alt="Detail shot"
               />
-              <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
-            </div>
-            
-            {/* Floating Element */}
-            <div className="absolute -bottom-10 -left-16 bg-surface p-6 border border-white/10 backdrop-blur-md z-20 hidden lg:block">
-              <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-2">Current Focus</p>
-              <p className="text-headline-md font-headline-md text-primary">Vol. IV : Silence</p>
             </div>
           </div>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center animate-fade-in opacity-0" style={{ animationDelay: "1.2s", animationFillMode: "forwards" }}>
+        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center animate-fade-in opacity-0" style={{ animationDelay: "0.5s", animationFillMode: "forwards" }}>
           <span className="text-label-caps font-label-caps text-outline-variant uppercase mb-4 rotate-90 tracking-widest">Scroll</span>
           <div className="w-[1px] h-16 bg-gradient-to-b from-outline-variant to-transparent"></div>
         </div>
@@ -2244,9 +2233,23 @@ function App() {
 
           {/* Bottom Footer: Copyright & Legal */}
           <div className="w-full flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/[0.08]">
-            <p className="text-xs font-semibold tracking-widest text-on-surface-variant uppercase mb-4 md:mb-0">
-              © {new Date().getFullYear()} SETARA STUDIO. ALL RIGHTS RESERVED.
-            </p>
+            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-4 md:mb-0">
+              <p className="text-xs font-semibold tracking-widest text-on-surface-variant uppercase">
+                © {new Date().getFullYear()} SETARA STUDIO. ALL RIGHTS RESERVED.
+              </p>
+              <span className="hidden md:inline text-on-surface-variant/30">|</span>
+              <p className="text-xs tracking-widest text-on-surface-variant/60 uppercase">
+                Designed by{" "}
+                <a
+                  href="https://fusionify.id"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent hover:text-primary transition-colors duration-300"
+                >
+                  Fusionify Digital Group
+                </a>
+              </p>
+            </div>
             <div className="flex space-x-8">
               <a
                 href="#"
