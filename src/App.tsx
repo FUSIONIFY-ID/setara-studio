@@ -8,6 +8,7 @@ import {
   ChevronRight,
   X,
   Menu,
+  Calendar,
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -202,30 +203,23 @@ function App() {
     if (!isLoaderFinished) return;
 
     const sections = ["home", "portfolio", "about", "services", "pricing", "contact"];
-    const observers = sections.map((id) => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0, rootMargin: "-30% 0px -30% 0px" }
+    );
+
+    sections.forEach((id) => {
       const el = document.getElementById(id);
-      if (!el) return null;
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveSection(id);
-            }
-          });
-        },
-        { threshold: 0.1, rootMargin: "-30% 0px -30% 0px" }
-      );
-
-      observer.observe(el);
-      return { observer, el };
+      if (el) observer.observe(el);
     });
 
-    return () => {
-      observers.forEach((obs) => {
-        if (obs) obs.observer.unobserve(obs.el);
-      });
-    };
+    return () => observer.disconnect();
   }, [isLoaderFinished]);
   const [activeFilter, setActiveFilter] = useState<
     | "all"
@@ -243,6 +237,13 @@ function App() {
   const [lightboxImg, setLightboxImg] = useState("");
   const [lightboxList, setLightboxList] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Custom Select Dropdown State
+  const [selectedService, setSelectedService] = useState("");
+  const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [calendarActiveDate, setCalendarActiveDate] = useState(new Date());
 
   // Stats Counters
   const statsRef = useRef<HTMLDivElement>(null);
@@ -362,7 +363,7 @@ function App() {
 
     if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
       lenis = new Lenis({
-        duration: 1.4,
+        duration: 1.1,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
       });
@@ -626,6 +627,58 @@ function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const getDaysInMonth = (year: number, month: number) => {
+    const date = new Date(year, month, 1);
+    const days = [];
+    const startDayOfWeek = date.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+    const adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+    const prevMonthLastDate = new Date(year, month, 0).getDate();
+    
+    for (let i = adjustedStartDay - 1; i >= 0; i--) {
+      const prevMonth = month === 0 ? 12 : month;
+      const prevYear = month === 0 ? year - 1 : year;
+      days.push({
+        dateStr: `${prevYear}-${String(prevMonth).padStart(2, "0")}-${String(prevMonthLastDate - i).padStart(2, "0")}`,
+        dayNum: prevMonthLastDate - i,
+        isCurrentMonth: false,
+      });
+    }
+
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    for (let i = 1; i <= lastDate; i++) {
+      days.push({
+        dateStr: `${year}-${String(month + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`,
+        dayNum: i,
+        isCurrentMonth: true,
+      });
+    }
+
+    const totalCells = 42;
+    const nextMonthDaysNeeded = totalCells - days.length;
+    for (let i = 1; i <= nextMonthDaysNeeded; i++) {
+      const nextMonth = month === 11 ? 1 : month + 2;
+      const nextYear = month === 11 ? year + 1 : year;
+      days.push({
+        dateStr: `${nextYear}-${String(nextMonth).padStart(2, "0")}-${String(i).padStart(2, "0")}`,
+        dayNum: i,
+        isCurrentMonth: false,
+      });
+    }
+
+    return days;
+  };
+
   const handleBookingSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -787,13 +840,13 @@ function App() {
           {/* Trailing Action */}
           <div className="flex items-center gap-3">
             <a
-              className="hidden lg:inline-flex magnetic-btn bg-primary-container text-[#080808] px-8 py-3 text-label-caps font-label-caps uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-colors duration-300"
+              className="hidden lg:inline-flex magnetic-btn bg-primary-container text-[#080808] px-6 py-3 text-label-caps font-label-caps uppercase tracking-widest hover:bg-on-surface hover:text-surface transition-colors duration-300"
               href="#booking"
               onClick={(e) => handleAnchorClick(e, "#booking")}
               onMouseMove={handleMagneticMove}
               onMouseLeave={handleMagneticLeave}
             >
-              Inquire
+              BOOK SESSION
             </a>
             
             {/* Mobile Menu Toggle */}
@@ -842,7 +895,7 @@ function App() {
             onClick={(e) => handleAnchorClick(e, "#booking")}
             className="mt-4 bg-primary-container text-[#080808] px-10 py-4 text-label-caps font-label-caps tracking-widest"
           >
-            Inquire
+            BOOK SESSION
           </a>
         </div>
       </nav>
@@ -857,7 +910,7 @@ function App() {
             muted
             playsInline
             className="w-full h-full object-cover opacity-50 mix-blend-luminosity"
-            poster="/hero_bg.png"
+            poster={`${import.meta.env.BASE_URL}hero_bg.png`}
           >
             <source
               src="https://assets.mixkit.co/videos/preview/mixkit-photographer-taking-photos-in-a-studio-34281-large.mp4"
@@ -895,11 +948,11 @@ function App() {
           </div>
 
           {/* Right Image Offset (Parallax Layer 2) */}
-          <div className="hidden md:block md:col-span-4 md:col-start-9 relative parallax-layer mt-32">
-            <div className="relative aspect-[3/4] overflow-hidden group">
+          <div className="hidden md:block md:col-span-4 md:col-start-9 relative parallax-layer mt-16 flex items-center justify-center">
+            <div className="relative h-[50vh] md:h-[55vh] aspect-[3/4] overflow-hidden group rounded-2xl shadow-2xl">
               <img
                 className="object-cover w-full h-full transform scale-105 group-hover:scale-100 transition-transform duration-1000 ease-out filter grayscale group-hover:grayscale-0"
-                src="/hero_detail.png"
+                src={`${import.meta.env.BASE_URL}hero_detail.png`}
                 alt="Detail shot"
               />
               <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
@@ -1125,7 +1178,7 @@ function App() {
         </div>
       </section>
 
-      {/* 11. ABOUT — Visual Poetry in Motion */}
+      {/* 11. ABOUT — Visual Poetry in Every Frame */}
       <section
         id="about"
         className="relative py-40 md:py-[160px] px-6 md:px-20 max-w-[1440px] mx-auto"
@@ -1140,7 +1193,7 @@ function App() {
             >
               Visual Poetry{" "}
               <br />
-              <span className="italic text-on-surface-variant">in Motion.</span>
+              <span className="italic text-on-surface-variant">in Every Frame.</span>
             </h2>
             <p className="text-on-surface-variant text-lg font-light leading-relaxed max-w-md mb-12" style={{ fontFamily: "Inter, sans-serif", letterSpacing: "0.01em" }}>
               We don't just capture images; we architect moments. Rooted in editorial
@@ -1480,12 +1533,14 @@ function App() {
       {/* 15. CURATED COLLECTIONS — Packages */}
       <section
         id="pricing"
-        className="relative py-32 md:py-[160px] bg-surface-container overflow-hidden"
+        className="relative py-24 md:py-32 bg-[#101112] border-t border-white/5 z-20"
       >
         {/* Subtle background glow */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[140px] pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/3 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="px-6 md:px-20 mb-20 text-center relative z-10">
+          <div className="w-12 h-[1px] bg-accent mx-auto mb-6"></div>
           <h2 className="font-display text-text mb-6" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", lineHeight: "120%" }}>
             Curated Collections
           </h2>
@@ -1497,113 +1552,137 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 md:px-20 relative z-10 max-w-[1440px] mx-auto">
 
           {/* Tier 1 — Essential */}
-          <div className="border border-outline-variant/30 hover:border-accent/50 bg-surface/40 backdrop-blur-md p-10 flex flex-col transition-all duration-500 hover:-translate-y-2 group reveal">
+          <div className="border border-white/10 hover:border-accent/40 bg-surface/30 backdrop-blur-md p-8 md:p-10 rounded-2xl flex flex-col transition-all duration-500 hover:-translate-y-3 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] group reveal">
             <div className="mb-8">
-              <h3 className="label-caps text-accent mb-4">Essential</h3>
-              <h4 className="font-display text-text text-2xl md:text-[32px] mb-2" style={{ lineHeight: "130%" }}>The Narrative</h4>
-              <p className="text-on-surface-variant text-base leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
-                For focused sessions requiring succinct, powerful storytelling.
+              <span className="text-[10px] tracking-[0.3em] uppercase text-accent font-semibold block mb-2">Tier 01 // Essential</span>
+              <h4 className="font-display text-text text-2xl md:text-3xl mb-4" style={{ lineHeight: "130%" }}>The Narrative</h4>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-3xl md:text-4xl font-display text-text font-light">$1,500</span>
+                <span className="text-xs text-text/40 tracking-wider uppercase font-sans">Investment</span>
+              </div>
+              <p className="text-on-surface-variant text-sm leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
+                For focused sessions requiring succinct, powerful storytelling and editorial vision.
               </p>
             </div>
+            
+            <div className="w-full h-px bg-white/5 my-6"></div>
+            
             <div className="mb-10 flex-grow">
-              <ul className="space-y-4 text-base" style={{ fontFamily: "Inter, sans-serif" }}>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  2 Hours of Coverage
+              <ul className="space-y-4 text-sm" style={{ fontFamily: "Inter, sans-serif" }}>
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  2 Hours of Session Coverage
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  50 Retouched Images
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  50 Custom Retouched Images
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  Private Online Gallery
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  Private Digital Atelier Gallery
                 </li>
               </ul>
             </div>
+            
             <a
               href="#booking"
               onClick={(e) => handleAnchorClick(e, "#booking")}
-              className="w-full text-center label-caps py-4 border border-outline-variant text-text group-hover:bg-accent group-hover:text-[#080808] group-hover:border-accent transition-all duration-300 block"
+              className="w-full text-center label-caps py-4 rounded-lg border border-white/20 text-text group-hover:bg-accent group-hover:text-black group-hover:border-accent transition-all duration-500 block"
             >
               Reserve Session
             </a>
           </div>
 
           {/* Tier 2 — Professional (Highlighted) */}
-          <div className="border border-accent/40 bg-surface-container/60 backdrop-blur-md p-10 flex flex-col transition-all duration-500 hover:-translate-y-2 group relative reveal">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-[#080808] px-4 py-1 label-caps">
-              Most Selected
+          <div className="border border-accent/40 bg-surface-container/70 shadow-[0_20px_60px_rgba(212,175,55,0.03)] backdrop-blur-md p-8 md:p-10 rounded-2xl flex flex-col transition-all duration-500 hover:-translate-y-3 hover:shadow-[0_25px_60px_rgba(212,175,55,0.06)] group relative reveal">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-black px-5 py-1 text-[9px] tracking-[0.3em] font-semibold uppercase rounded-full shadow-lg">
+              Most Requested
             </div>
-            <div className="mb-8 mt-4">
-              <h3 className="label-caps text-accent mb-4">Professional</h3>
-              <h4 className="font-display text-text text-2xl md:text-[32px] mb-2" style={{ lineHeight: "130%" }}>The Editorial</h4>
-              <p className="text-on-surface-variant text-base leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
-                A comprehensive approach capturing depth, detail, and scale.
+            <div className="mb-8 mt-2">
+              <span className="text-[10px] tracking-[0.3em] uppercase text-accent font-semibold block mb-2">Tier 02 // Professional</span>
+              <h4 className="font-display text-text text-2xl md:text-3xl mb-4" style={{ lineHeight: "130%" }}>The Editorial</h4>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-3xl md:text-4xl font-display text-accent font-light">$2,800</span>
+                <span className="text-xs text-accent/50 tracking-wider uppercase font-sans">Investment</span>
+              </div>
+              <p className="text-on-surface-variant text-sm leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
+                A comprehensive high-fashion approach capturing depth, detail, and cinematic scale.
               </p>
             </div>
+            
+            <div className="w-full h-px bg-accent/10 my-6"></div>
+            
             <div className="mb-10 flex-grow">
-              <ul className="space-y-4 text-base" style={{ fontFamily: "Inter, sans-serif" }}>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  Half-Day Coverage (5 Hours)
+              <ul className="space-y-4 text-sm" style={{ fontFamily: "Inter, sans-serif" }}>
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  Half-Day Session Coverage (5 Hours)
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  150 Retouched Images
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  150 High-End Retouched Images
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
                   Creative Direction Consultation
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  Fine Art Print Collection
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  Atelier Fine Art Print Collection
                 </li>
               </ul>
             </div>
+            
             <a
               href="#booking"
               onClick={(e) => handleAnchorClick(e, "#booking")}
-              className="btn-luxury w-full text-center label-caps py-4 bg-accent text-[#080808] border border-accent hover:bg-surface hover:text-accent transition-all duration-300 block"
+              className="btn-luxury w-full text-center label-caps py-4 rounded-lg bg-accent text-[#080808] border border-accent hover:bg-transparent hover:text-accent transition-all duration-500 block"
             >
               Reserve Session
             </a>
           </div>
 
           {/* Tier 3 — Signature */}
-          <div className="border border-outline-variant/30 hover:border-accent/50 bg-surface/40 backdrop-blur-md p-10 flex flex-col transition-all duration-500 hover:-translate-y-2 group reveal">
+          <div className="border border-white/10 hover:border-accent/40 bg-surface/30 backdrop-blur-md p-8 md:p-10 rounded-2xl flex flex-col transition-all duration-500 hover:-translate-y-3 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] group reveal">
             <div className="mb-8">
-              <h3 className="label-caps text-accent mb-4">Signature</h3>
-              <h4 className="font-display text-text text-2xl md:text-[32px] mb-2" style={{ lineHeight: "130%" }}>The Masterpiece</h4>
-              <p className="text-on-surface-variant text-base leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
-                An uncompromising, full-scale production for iconic legacy building.
+              <span className="text-[10px] tracking-[0.3em] uppercase text-accent font-semibold block mb-2">Tier 03 // Signature</span>
+              <h4 className="font-display text-text text-2xl md:text-3xl mb-4" style={{ lineHeight: "130%" }}>The Masterpiece</h4>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-3xl md:text-4xl font-display text-text font-light">$4,900</span>
+                <span className="text-xs text-text/40 tracking-wider uppercase font-sans">Investment</span>
+              </div>
+              <p className="text-on-surface-variant text-sm leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
+                An uncompromising, full-scale production for iconic, legacy-building portfolios.
               </p>
             </div>
+            
+            <div className="w-full h-px bg-white/5 my-6"></div>
+            
             <div className="mb-10 flex-grow">
-              <ul className="space-y-4 text-base" style={{ fontFamily: "Inter, sans-serif" }}>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  Full-Day Coverage (10+ Hours)
+              <ul className="space-y-4 text-sm" style={{ fontFamily: "Inter, sans-serif" }}>
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  Full-Day Session Coverage (10+ Hours)
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  Complete Curated Gallery
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  Complete Curated Digital Gallery
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  Second Photographer
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  Second Atelier Photographer
                 </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-3 mt-0.5 text-sm">&#10003;</span>
-                  Custom Hand-Bound Album
+                <li className="flex items-start text-text/80">
+                  <span className="text-accent mr-3 mt-1 text-[10px]">✦</span>
+                  Custom Hand-Bound Silk Album
                 </li>
               </ul>
             </div>
+            
             <a
               href="#booking"
               onClick={(e) => handleAnchorClick(e, "#booking")}
-              className="w-full text-center label-caps py-4 border border-outline-variant text-text group-hover:bg-accent group-hover:text-[#080808] group-hover:border-accent transition-all duration-300 block"
+              className="w-full text-center label-caps py-4 rounded-lg border border-white/20 text-text group-hover:bg-accent group-hover:text-black group-hover:border-accent transition-all duration-500 block"
             >
               Reserve Session
             </a>
@@ -1614,7 +1693,7 @@ function App() {
       {/* 16. BOOKING RESERVATION */}
       <section
         id="booking"
-        className="relative py-32 md:py-48 px-6 md:px-12 overflow-hidden"
+        className="relative py-24 md:py-32 px-6 md:px-20 flex flex-col justify-center bg-[#080808] border-t border-white/10 md:sticky md:top-0 z-30 shadow-[0_-30px_80px_rgba(0,0,0,0.9)] overflow-hidden"
       >
         <div className="absolute inset-0">
           <img
@@ -1627,7 +1706,7 @@ function App() {
           <div className="absolute inset-0 bg-gradient-to-b from-bg via-bg/85 to-bg"></div>
         </div>
 
-        <div className="relative max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-12 items-start">
+        <div className="relative max-w-[1440px] w-full mx-auto grid lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-5">
             <div className="accent-rule mb-8 reveal-left"></div>
             <h2 className="heading-xl text-5xl md:text-7xl mb-8 reveal">
@@ -1682,13 +1761,13 @@ function App() {
             </div>
           </div>
 
-          <div className="lg:col-span-7 lg:pl-8">
+          <div className="lg:col-span-7">
             <form
               onSubmit={handleBookingSubmit}
-              className="glass rounded-sm p-8 md:p-12 reveal"
+              className="glass rounded-2xl p-6 md:p-10 w-full reveal"
               id="bookingForm"
             >
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                 <div>
                   <label
                     className="text-xs tracking-[0.25em] uppercase text-text/50 block mb-2"
@@ -1744,25 +1823,67 @@ function App() {
                   >
                     Photography Type
                   </label>
-                  <select
-                    className="lux-input"
-                    id="bf-type"
-                    name="type"
-                    required
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      Select a service
-                    </option>
-                    <option>Wedding</option>
-                    <option>Portrait</option>
-                    <option>Fashion</option>
-                    <option>Graduation</option>
-                    <option>Corporate</option>
-                    <option>Product</option>
-                    <option>Commercial Campaign</option>
-                    <option>Drone & Aerial</option>
-                  </select>
+                  <div className="relative">
+                    {/* Hidden input to preserve standard HTML form submission behavior */}
+                    <input type="hidden" name="type" value={selectedService} required />
+                    
+                    {/* Select Trigger */}
+                    <button
+                      type="button"
+                      onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
+                      className="lux-input flex items-center justify-between w-full text-left"
+                    >
+                      <span className={selectedService ? "text-text" : "text-text/30"}>
+                        {selectedService || "Select a service"}
+                      </span>
+                      <ChevronRight
+                        size={16}
+                        className={`text-text/40 transition-transform duration-300 ${
+                          isServiceDropdownOpen ? "rotate-90 text-accent" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {/* Custom Dropdown List */}
+                    {isServiceDropdownOpen && (
+                      <>
+                        {/* Overlay backdrop to close dropdown when clicking outside */}
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsServiceDropdownOpen(false)}
+                        />
+                        <ul className="absolute left-0 right-0 mt-2 bg-[#121414] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 animate-[fadeIn_0.2s_ease-out]">
+                          {[
+                            "Wedding",
+                            "Portrait",
+                            "Fashion",
+                            "Graduation",
+                            "Corporate",
+                            "Product",
+                            "Commercial Campaign",
+                            "Drone & Aerial",
+                          ].map((service) => (
+                            <li key={service}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedService(service);
+                                  setIsServiceDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-5 py-3.5 text-sm transition-colors cursor-interactive ${
+                                  selectedService === service
+                                    ? "bg-accent/10 text-accent font-medium border-l-2 border-accent"
+                                    : "text-text/75 hover:bg-white/5 hover:text-text"
+                                }`}
+                              >
+                                {service}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <label
@@ -1771,13 +1892,106 @@ function App() {
                   >
                     Preferred Date
                   </label>
-                  <input
-                    className="lux-input"
-                    type="date"
-                    id="bf-date"
-                    name="date"
-                    required
-                  />
+                  <div className="relative group">
+                    {/* Hidden field for form validation/submit */}
+                    <input
+                      type="hidden"
+                      name="date"
+                      value={selectedDate}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarOpen((prev) => !prev)}
+                      className="lux-input flex items-center justify-between w-full text-left cursor-interactive"
+                    >
+                      <span className={selectedDate ? "text-text" : "text-text/30"}>
+                        {selectedDate ? formatDate(selectedDate) : "Select a date"}
+                      </span>
+                      <Calendar size={16} className="text-text/40 group-hover:text-accent transition-colors" />
+                    </button>
+
+                    {/* Custom Luxury Calendar Dropdown */}
+                    {isCalendarOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsCalendarOpen(false)}
+                        />
+                        <div className="absolute left-0 right-0 mt-2 bg-[#121414] border border-white/10 rounded-2xl p-5 shadow-2xl z-50 animate-[fadeIn_0.2s_ease-out] w-80 mx-auto md:w-auto">
+                          {/* Calendar Navigation Header */}
+                          <div className="flex justify-between items-center mb-6">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCalendarActiveDate(
+                                  new Date(calendarActiveDate.getFullYear(), calendarActiveDate.getMonth() - 1, 1)
+                                );
+                              }}
+                              className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center hover:border-accent hover:text-accent transition-colors cursor-interactive"
+                            >
+                              <ChevronLeft size={16} />
+                            </button>
+                            <span className="font-display text-text text-sm tracking-wider uppercase">
+                              {calendarActiveDate.toLocaleDateString("en-US", {
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCalendarActiveDate(
+                                  new Date(calendarActiveDate.getFullYear(), calendarActiveDate.getMonth() + 1, 1)
+                                );
+                              }}
+                              className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center hover:border-accent hover:text-accent transition-colors cursor-interactive"
+                            >
+                              <ChevronRight size={16} />
+                            </button>
+                          </div>
+
+                          {/* Days of Week Header */}
+                          <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                            {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
+                              <span key={day} className="text-[10px] tracking-wider uppercase text-text/30 font-semibold">
+                                {day}
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* Calendar Grid Cells */}
+                          <div className="grid grid-cols-7 gap-1 text-center">
+                            {getDaysInMonth(calendarActiveDate.getFullYear(), calendarActiveDate.getMonth()).map((cell, idx) => {
+                              const isSelected = selectedDate === cell.dateStr;
+                              const isToday = new Date().toISOString().split("T")[0] === cell.dateStr;
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedDate(cell.dateStr);
+                                    setIsCalendarOpen(false);
+                                  }}
+                                  className={`aspect-square rounded-lg flex items-center justify-center text-xs transition-colors cursor-interactive ${
+                                    isSelected
+                                      ? "bg-accent text-black font-semibold"
+                                      : !cell.isCurrentMonth
+                                      ? "text-text/20 hover:bg-white/5"
+                                      : isToday
+                                      ? "border border-accent/40 text-accent font-medium hover:bg-white/5"
+                                      : "text-text/70 hover:bg-white/5 hover:text-text"
+                                  }`}
+                                >
+                                  {cell.dayNum}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <label
@@ -1802,7 +2016,7 @@ function App() {
                 onMouseLeave={handleMagneticLeave}
                 className="btn-luxury w-full py-5 border border-accent text-accent text-xs tracking-[0.3em] uppercase rounded-full flex items-center justify-center gap-3 magnetic transition-transform duration-100"
               >
-                Send Reservation Request
+                Request Booking
                 <ArrowRight size={14} />
               </button>
               <p className="text-center text-text/40 text-xs mt-5">
@@ -1852,7 +2066,7 @@ function App() {
             <span className="heading-italic text-accent">only come once</span>.
           </h2>
           <p className="text-text/70 text-lg max-w-xl mx-auto mb-12 font-light reveal">
-            Reserve your session before our 2025 calendar closes. We accept a
+            Book your session before our 2025 calendar closes. We accept a
             limited number of commissions each season to ensure every project
             receives our full creative attention.
           </p>
@@ -1870,7 +2084,7 @@ function App() {
       </section>
 
       {/* 18. FOOTER */}
-      <footer className="relative bg-[#0b0c0c] border-t border-white/10 mt-40 overflow-hidden">
+      <footer className="relative bg-[#0b0c0c] border-t border-white/10 mt-16 overflow-hidden z-40 shadow-[0_-30px_80px_rgba(0,0,0,0.9)]">
         {/* Large Brand Background Monogram */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none overflow-hidden select-none">
           <span className="font-display text-[22vw] leading-none whitespace-nowrap text-text uppercase">
