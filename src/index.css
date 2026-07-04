@@ -1,0 +1,738 @@
+@import "tailwindcss";
+
+@theme {
+    --font-display: "Playfair Display", serif;
+    --font-cormorant: "Cormorant Garamond", serif;
+    --font-sans: Inter, sans-serif;
+
+    /* SETARA STUDIO Custom Fonts */
+    --font-display-xl: "Playfair Display", serif;
+    --font-display-lg-mobile: "Playfair Display", serif;
+    --font-headline-md: "Playfair Display", serif;
+    --font-body-lg: "Inter", sans-serif;
+    --font-label-caps: "Inter", sans-serif;
+
+    /* SETARA STUDIO Custom Font Sizes (size, line-height, letter-spacing, font-weight handled by tailwind if we just map them, but tailwind @theme for fontSize allows tuples) */
+    --text-display-xl: 120px;
+    --text-display-xl--line-height: 110%;
+    --text-display-xl--letter-spacing: -0.02em;
+    --text-display-xl--font-weight: 400;
+
+    --text-body-lg: 18px;
+    --text-body-lg--line-height: 160%;
+    --text-body-lg--letter-spacing: 0.01em;
+    --text-body-lg--font-weight: 300;
+
+    --text-headline-md: 32px;
+    --text-headline-md--line-height: 130%;
+    --text-headline-md--font-weight: 400;
+
+    --text-label-caps: 12px;
+    --text-label-caps--line-height: 100%;
+    --text-label-caps--letter-spacing: 0.15em;
+    --text-label-caps--font-weight: 600;
+
+    --text-display-lg-mobile: 42px;
+    --text-display-lg-mobile--line-height: 115%;
+    --text-display-lg-mobile--font-weight: 400;
+
+    /* SETARA STUDIO palette */
+    --color-bg: #080808;
+    --color-secondary: #111111;
+    --color-surface: #121414;
+    --color-surface-container: #1e2020;
+    --color-text: #e3e2e2;
+    --color-muted: #B0B0B0;
+    --color-accent: #C8A96A;
+    --color-primary: #e5c483;
+    --color-primary-container: #c8a96a;
+    --color-on-surface: #e3e2e2;
+    --color-on-surface-variant: #d0c5b5;
+    --color-outline: #998f81;
+    --color-outline-variant: #4d463a;
+    --color-accent-soft: rgba(200, 169, 106, 0.15);
+
+    /* Spacing */
+    --spacing-margin-desktop: 80px;
+    --spacing-section-gap: 160px;
+    --spacing-gutter: 32px;
+    --spacing-margin-mobile: 24px;
+    --spacing-container-max: 1440px;
+}
+
+:root {
+    --bg: #080808;
+    --secondary: #111111;
+    --surface: #121414;
+    --text: #e3e2e2;
+    --muted: #B0B0B0;
+    --accent: #C8A96A;
+    --primary: #e5c483;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Custom easing curves — strong, intentional, not the weak CSS defaults */
+:root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    background: var(--bg);
+    scroll-behavior: auto; /* Handled by Lenis in JS */
+}
+
+body {
+    background-color: #080808; /* Deep black as requested, overriding surface */
+    color: #e3e2e2;
+    font-family: "Inter", sans-serif;
+    overflow-x: hidden;
+    cursor: auto; /* removing custom cursor globally in favor of user's new one if needed, though they provided new dot/outline CSS */
+}
+
+@keyframes reveal {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-reveal {
+    animation: reveal 1s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 1.5s ease-out forwards;
+}
+
+.magnetic-btn {
+    position: relative;
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.parallax-layer {
+    will-change: transform;
+}
+
+
+/* Selection */
+::selection {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 0;
+    display: none;
+}
+
+/* Noise texture overlay */
+.noise-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: var(--z-overlay-ambient);
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' /%3E%3C/svg%3E");
+}
+
+/* Vignette */
+.vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: calc(var(--z-overlay-ambient) - 1);
+    background: radial-gradient(
+        ellipse at center,
+        transparent 40%,
+        rgba(0, 0, 0, 0.45) 100%
+    );
+}
+
+/* Cursor styles */
+.cursor-dot,
+.cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: var(--z-modal);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+}
+.cursor-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    transition:
+        transform 150ms var(--ease-out),
+        opacity 150ms var(--ease-out),
+        width 200ms var(--ease-out),
+        height 200ms var(--ease-out);
+}
+.cursor-ring {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(200, 169, 106, 0.5);
+    transition:
+        width 300ms var(--ease-out),
+        height 300ms var(--ease-out),
+        border-color 250ms var(--ease-out);
+}
+.cursor-hover .cursor-ring {
+    width: 80px;
+    height: 80px;
+    border-color: var(--accent);
+}
+.cursor-hover .cursor-dot {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+}
+
+/* Subtle surface — used broadly as the default card/panel surface.
+   No backdrop-filter; simple tinted bg + thin border for performance. */
+.glass {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* True glass — reserved for overlays and nav where blur is justified */
+.glass-blur {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Reveal mask animation base — content is ALWAYS visible by default.
+   Reveals enhance; they never gate visibility. */
+.reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* When JS has loaded and can observe, opt elements into animation */
+.reveal-ready .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+}
+.reveal-ready .reveal.in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Variant: reveal from left */
+.reveal-ready .reveal-left {
+    opacity: 0;
+    transform: translateX(-40px);
+    transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+}
+.reveal-ready .reveal-left.in-view {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Variant: reveal with scale */
+.reveal-ready .reveal-scale {
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+        opacity 650ms var(--ease-out),
+        transform 650ms var(--ease-out);
+}
+.reveal-ready .reveal-scale.in-view {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Variant: reveal with blur (cinematic) */
+.reveal-ready .reveal-blur {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(16px);
+    transition:
+        opacity 800ms var(--ease-out),
+        filter 800ms var(--ease-out),
+        transform 800ms var(--ease-out);
+}
+.reveal-ready .reveal-blur.in-view {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+}
+
+/* Stagger delays — 50ms intervals, maxes at 350ms */
+.reveal-ready .reveal-stagger > *:nth-child(1) { transition-delay: 0ms; }
+.reveal-ready .reveal-stagger > *:nth-child(2) { transition-delay: 50ms; }
+.reveal-ready .reveal-stagger > *:nth-child(3) { transition-delay: 100ms; }
+.reveal-ready .reveal-stagger > *:nth-child(4) { transition-delay: 150ms; }
+.reveal-ready .reveal-stagger > *:nth-child(5) { transition-delay: 200ms; }
+.reveal-ready .reveal-stagger > *:nth-child(6) { transition-delay: 250ms; }
+.reveal-ready .reveal-stagger > *:nth-child(7) { transition-delay: 300ms; }
+.reveal-ready .reveal-stagger > *:nth-child(8) { transition-delay: 350ms; }
+
+.reveal-mask {
+    overflow: hidden;
+    display: inline-block;
+}
+.reveal-ready .reveal-mask > span {
+    display: inline-block;
+    transform: translateY(110%);
+    transition: transform 1.1s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.reveal-mask > span {
+    display: inline-block;
+}
+.reveal-ready .reveal-mask.in-view > span {
+    transform: translateY(0);
+}
+
+/* Luxury hover button */
+.btn-luxury {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition: color 250ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.btn-luxury::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: translateY(101%);
+    transition: transform 350ms var(--ease-in-out);
+    z-index: -1;
+}
+.btn-luxury:active {
+    transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+    .btn-luxury:hover::before {
+        transform: translateY(0);
+    }
+    .btn-luxury:hover {
+        color: var(--bg);
+    }
+}
+
+/* Underline link effect */
+.underline-link {
+    position: relative;
+    display: inline-block;
+}
+.underline-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transform-origin: right;
+    transform: scaleX(0);
+    transition: transform 350ms var(--ease-in-out);
+}
+@media (hover: hover) and (pointer: fine) {
+    .underline-link:hover::after {
+        transform-origin: left;
+        transform: scaleX(1);
+    }
+}
+
+/* Portfolio Hover Effects */
+.portfolio-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    transition: transform 400ms var(--ease-out);
+}
+.portfolio-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+        transform 600ms var(--ease-out),
+        filter 300ms ease-out;
+    will-change: transform;
+}
+.portfolio-item .meta {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px;
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+        opacity 300ms var(--ease-out),
+        transform 300ms var(--ease-out);
+}
+.portfolio-item .glare {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.08) 50%,
+        transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 400ms ease-out;
+    pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+    .portfolio-item:hover img {
+        transform: scale(1.06);
+        filter: brightness(0.6);
+    }
+    .portfolio-item:hover .meta {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .portfolio-item:hover .glare {
+        opacity: 1;
+    }
+}
+.portfolio-item:active {
+    transform: scale(0.98);
+}
+
+/* Service card — refined surface with subtle accent line */
+.service-card {
+    position: relative;
+    transition:
+        transform 300ms var(--ease-out),
+        border-color 250ms var(--ease-out);
+}
+.service-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(200, 169, 106, 0.3),
+        transparent
+    );
+    opacity: 0;
+    transition: opacity 300ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+    .service-card:hover::before {
+        opacity: 1;
+    }
+    .service-card:hover {
+        border-color: rgba(200, 169, 106, 0.2);
+        transform: translateY(-4px);
+    }
+}
+.service-card:active {
+    transform: scale(0.98);
+}
+
+/* Accent line — a thin horizontal gold rule used as a section divider */
+.accent-rule {
+    width: 48px;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.5;
+}
+
+/* Pricing Glow */
+.pricing-glow {
+    box-shadow:
+        0 0 80px -20px rgba(200, 169, 106, 0.4),
+        inset 0 1px 0 rgba(200, 169, 106, 0.2);
+}
+
+/* Floating animation */
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-12px) rotate(0.5deg);
+    }
+}
+.floating {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* Scroll indicator animation */
+@keyframes scrollDot {
+    0% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(24px);
+        opacity: 0;
+    }
+}
+.scroll-dot {
+    animation: scrollDot 2s ease-in-out infinite;
+}
+
+/* Marquee track */
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+.marquee-track {
+    animation: marquee 40s linear infinite;
+}
+
+/* Luxury Input */
+.lux-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text);
+    padding: 14px 0;
+    width: 100%;
+    font-size: 15px;
+    transition: border-color 250ms var(--ease-out);
+    outline: none;
+    font-family: "Inter", sans-serif;
+}
+.lux-input:focus {
+    border-color: var(--accent);
+}
+.lux-input::placeholder {
+    color: rgba(245, 245, 245, 0.35);
+}
+select.lux-input {
+    color: rgba(245, 245, 245, 0.6);
+}
+select.lux-input option {
+    background: var(--secondary);
+    color: var(--text);
+}
+
+/* Filter Pills */
+.filter-pill {
+    position: relative;
+    transition: color 200ms var(--ease-out);
+}
+.filter-pill::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+    transition:
+        transform 250ms var(--ease-out),
+        opacity 250ms var(--ease-out);
+}
+.filter-pill.active::after {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+}
+.filter-pill.active {
+    color: var(--accent);
+}
+.filter-pill:active {
+    transform: scale(0.97);
+}
+
+/* Lightbox overlay — use visibility + opacity so transitions actually play */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    background: rgba(5, 5, 5, 0.96);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity 300ms var(--ease-out),
+        visibility 300ms;
+}
+.lightbox.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+.lightbox img {
+    max-width: 85vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+    transform: scale(0.96);
+    transition: transform 300ms var(--ease-out);
+}
+.lightbox.active img {
+    transform: scale(1);
+}
+
+/* Heading helpers */
+.heading-xl {
+    font-family: "Playfair Display", serif;
+    font-weight: 500;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+.heading-italic {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* Semantic z-index scale */
+:root {
+    --z-base: 0;
+    --z-sticky: 50;
+    --z-overlay-ambient: 90;
+    --z-modal-backdrop: 100;
+    --z-modal: 110;
+    --z-toast: 120;
+    --z-loader: 130;
+}
+
+/* Reduced motion — keep opacity and color transitions that aid comprehension.
+   Remove transform, position, and filter motion. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    /* Allow opacity and color to still transition smoothly */
+    .reveal-ready .reveal,
+    .reveal-ready .reveal-left,
+    .reveal-ready .reveal-scale,
+    .reveal-ready .reveal-blur {
+        transition: opacity 200ms ease !important;
+        transform: none !important;
+        filter: none !important;
+    }
+
+    .portfolio-item,
+    .portfolio-item img,
+    .service-card,
+    .btn-luxury,
+    .btn-luxury::before {
+        transition: opacity 200ms ease, color 200ms ease, border-color 200ms ease !important;
+    }
+}
+
+/* Header scroll states — toggled via JS class instead of React state */
+.header-top {
+    background: rgba(18, 20, 20, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+.header-scrolled {
+    background: rgba(8, 8, 8, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* Nav link with active dot indicator */
+.nav-link-active {
+    color: var(--primary);
+    font-weight: 700;
+}
+.nav-link-active::after {
+    content: "";
+    display: block;
+    width: 4px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 50%;
+    margin: 4px auto 0;
+}
+
+/* Label caps — 12px/0.15em tracking/600 weight, the reference's nav type */
+.label-caps {
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    line-height: 100%;
+    letter-spacing: 0.15em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Display XL — 120px desktop hero type */
+.display-xl {
+    font-family: "Playfair Display", serif;
+    font-size: clamp(2.625rem, 10vw, 7.5rem);
+    line-height: 110%;
+    letter-spacing: -0.02em;
+    font-weight: 400;
+    text-transform: uppercase;
+}
+
+/* Headline MD — 32px, used for brand in nav */
+.headline-md {
+    font-family: "Playfair Display", serif;
+    font-size: 32px;
+    line-height: 130%;
+    font-weight: 400;
+}
+
+/* CTA line — expanding horizontal rule */
+.cta-line {
+    width: 48px;
+    height: 1px;
+    background: var(--outline-variant, #4d463a);
+    transition: width 500ms var(--ease-out), background-color 500ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+    .group:hover .cta-line {
+        width: 96px;
+        background: var(--accent);
+    }
+}
