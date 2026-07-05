@@ -840,7 +840,7 @@ function App() {
 
         {/* Mobile Fullscreen Menu */}
         <div
-          className={`lg:hidden fixed inset-0 bg-bg/98 backdrop-blur-2xl flex flex-col items-center justify-center gap-10 transition-all duration-500 ${
+          className={`lg:hidden fixed inset-0 z-[100] bg-bg/98 backdrop-blur-2xl flex flex-col items-center justify-center gap-10 transition-all duration-500 ${
             mobileMenuOpen
               ? "opacity-100 translate-y-0"
               : "opacity-0 pointer-events-none -translate-y-5"
@@ -861,8 +861,8 @@ function App() {
                 key={link.label}
                 href={link.id}
                 onClick={(e) => handleAnchorClick(e, link.id)}
-                className={`text-headline-md font-headline-md transition-colors duration-300 uppercase tracking-widest ${
-                  isActive ? "text-primary font-bold" : "text-on-surface hover:text-primary"
+                className={`text-lg tracking-[0.25em] uppercase font-sans transition-colors duration-300 ${
+                  isActive ? "text-accent font-semibold" : "text-text/70 hover:text-accent"
                 }`}
               >
                 {link.label}
@@ -872,9 +872,9 @@ function App() {
           <a
             href="#booking"
             onClick={(e) => handleAnchorClick(e, "#booking")}
-            className="mt-4 bg-primary-container text-[#080808] px-10 py-4 text-label-caps font-label-caps tracking-widest"
+            className="mt-6 bg-accent text-[#080808] px-8 py-3.5 text-xs tracking-[0.3em] uppercase rounded-full hover:scale-105 transition-transform duration-300 font-semibold"
           >
-            BOOK SESSION
+            Book Session
           </a>
         </div>
       </nav>
