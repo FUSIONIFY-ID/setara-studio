@@ -9,6 +9,9 @@ import {
   X,
   Menu,
   Calendar,
+  Home,
+  Image,
+  BookOpen,
 } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -831,13 +834,7 @@ function App() {
               BOOK SESSION
             </a>
             
-            {/* Mobile Menu Toggle */}
-            <button
-              className="lg:hidden text-on-surface p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu size={24} />
-            </button>
+            {/* Mobile Menu Toggle - Removed in favor of Bottom Dock */}
           </div>
         </div>
 
@@ -2245,6 +2242,69 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* Floating Bottom Nav Dock (Mobile Only) */}
+      <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[380px] transition-all duration-300">
+        <div className="glass-blur px-6 py-3 rounded-full flex items-center justify-between shadow-[0_15px_40px_rgba(0,0,0,0.7)] border border-white/10 bg-[#080808]/75 backdrop-blur-2xl">
+          {/* Studio Link */}
+          <a
+            href="#home"
+            onClick={(e) => handleAnchorClick(e, "#home")}
+            className={`flex flex-col items-center gap-1 p-2 transition-colors ${
+              activeSection === "home" ? "text-accent" : "text-text/60 hover:text-text"
+            }`}
+          >
+            <Home size={18} />
+            <span className="text-[9px] tracking-wider uppercase font-medium">Studio</span>
+          </a>
+
+          {/* Portfolio Link */}
+          <a
+            href="#portfolio"
+            onClick={(e) => handleAnchorClick(e, "#portfolio")}
+            className={`flex flex-col items-center gap-1 p-2 transition-colors ${
+              activeSection === "portfolio" ? "text-accent" : "text-text/60 hover:text-text"
+            }`}
+          >
+            <Image size={18} />
+            <span className="text-[9px] tracking-wider uppercase font-medium">Works</span>
+          </a>
+
+          {/* Book Session FAB-style (Golden Button) */}
+          <a
+            href="#booking"
+            onClick={(e) => handleAnchorClick(e, "#booking")}
+            className="flex items-center justify-center bg-accent text-[#080808] w-10 h-10 rounded-full shadow-lg hover:scale-105 transition-transform duration-300 -translate-y-2 border border-accent/20"
+            aria-label="Book Session"
+          >
+            <Calendar size={18} />
+          </a>
+
+          {/* Contact/Narrative Link */}
+          <a
+            href="#about"
+            onClick={(e) => handleAnchorClick(e, "#about")}
+            className={`flex flex-col items-center gap-1 p-2 transition-colors ${
+              activeSection === "about" ? "text-accent" : "text-text/60 hover:text-text"
+            }`}
+          >
+            <BookOpen size={18} />
+            <span className="text-[9px] tracking-wider uppercase font-medium">About</span>
+          </a>
+
+          {/* Menu Toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`flex flex-col items-center gap-1 p-2 transition-colors ${
+              mobileMenuOpen ? "text-accent" : "text-text/60 hover:text-text"
+            }`}
+            aria-label="Toggle Menu"
+          >
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            <span className="text-[9px] tracking-wider uppercase font-medium">Menu</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
