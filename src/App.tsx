@@ -301,32 +301,7 @@ function App() {
         .querySelectorAll(".reveal, .reveal-mask, .reveal-left, .reveal-scale, .reveal-blur")
         .forEach((el) => observer.observe(el));
 
-      // Stagger hero text with blur-to-sharp cinematic entrance
-      gsap.fromTo(
-        "#heroTitle .reveal-mask span",
-        { y: "110%", filter: "blur(6px)" },
-        {
-          y: "0%",
-          filter: "blur(0px)",
-          duration: 1.4,
-          ease: "power4.out",
-          delay: 0.2,
-          stagger: 0.2,
-        },
-      );
-      gsap.fromTo(
-        ["#heroSub", "#heroCtas", "#heroScroll"],
-        { opacity: 0, y: 24, filter: "blur(4px)" },
-        {
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.8,
-          ease: "power3.out",
-          delay: 0.8,
-          stagger: 0.15,
-        },
-      );
+
 
       // Horizontal Pinned Scroll with GSAP ScrollTrigger
       if (hScrollRef.current && motionSectionRef.current) {
@@ -794,11 +769,14 @@ function App() {
         >
           <ChevronLeft size={20} />
         </button>
-        <img
-          src={lightboxImg}
-          alt="Immersive studio view"
-          className="max-w-[85vw] max-h-[85vh] object-contain rounded-sm shadow-2xl"
-        />
+        {lightboxImg && (
+          <img
+            src={lightboxImg}
+            alt="Immersive studio view"
+            className="max-w-[85vw] max-h-[85vh] object-contain rounded-sm shadow-2xl"
+            loading="lazy"
+          />
+        )}
         <button
           onClick={handleNextLightbox}
           className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full glass flex items-center justify-center text-text hover:text-accent transition-colors"
@@ -921,7 +899,7 @@ function App() {
         <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-20 grid grid-cols-4 md:grid-cols-12 gap-8 h-full items-center">
           {/* Left Typography Block */}
           <div className="col-span-4 md:col-span-6 flex flex-col justify-center parallax-layer">
-            <h1 className="text-display-lg-mobile md:text-display-xl font-display-xl text-on-surface uppercase leading-none mix-blend-difference mb-8">
+            <h1 className="text-display-lg-mobile md:text-5xl lg:text-7xl xl:text-display-xl font-display-xl text-on-surface uppercase leading-none mix-blend-difference mb-8">
               <span className="block overflow-hidden"><span className="block transform translate-y-full opacity-0 animate-reveal" style={{ animationDelay: "0.05s" }}>Visual</span></span>
               <span className="block overflow-hidden"><span className="block transform translate-y-full opacity-0 animate-reveal text-primary" style={{ animationDelay: "0.15s" }}>Poetry</span></span>
             </h1>
@@ -1047,7 +1025,7 @@ function App() {
 
         {/* Dynamic Category Filters */}
         <div
-          className="flex flex-wrap gap-8 mb-12 text-sm tracking-[0.2em] uppercase text-text/60 reveal"
+          className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 mb-12 text-sm tracking-[0.2em] uppercase text-text/60 reveal"
           id="filters"
         >
           {(
@@ -1073,7 +1051,7 @@ function App() {
 
         {/* Interactive Responsive Masonry-like Grid */}
         <div
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
           id="portfolioGrid"
         >
           {PORTFOLIO_ITEMS.filter(
@@ -1081,10 +1059,10 @@ function App() {
           ).map((item) => {
             const heightClass =
               item.span === "tall"
-                ? "h-[640px]"
+                ? "h-[380px] sm:h-[640px]"
                 : item.span === "short"
-                  ? "h-[300px]"
-                  : "h-[440px]";
+                  ? "h-[220px] sm:h-[300px]"
+                  : "h-[280px] sm:h-[440px]";
             const rowSpanClass = item.span === "tall" ? "row-span-2" : "";
 
             return (
@@ -2020,7 +1998,7 @@ function App() {
       <section
         ref={ctaSectionRef}
         id="contact"
-        className="relative py-32 md:py-48 overflow-hidden"
+        className="relative py-32 md:py-48 overflow-hidden z-40 bg-[#080808] shadow-[0_-30px_80px_rgba(0,0,0,0.9)]"
       >
         <div className="absolute inset-0" id="ctaBg">
           <div
