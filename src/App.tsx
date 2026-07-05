@@ -2051,7 +2051,7 @@ function App() {
       </section>
 
       {/* 18. FOOTER */}
-      <footer className="relative bg-[#0b0c0c] border-t border-white/10 mt-16 overflow-hidden z-40 shadow-[0_-30px_80px_rgba(0,0,0,0.9)]">
+      <footer className="relative bg-[#0b0c0c] border-t border-white/10 overflow-hidden z-40 shadow-[0_-30px_80px_rgba(0,0,0,0.9)]">
         {/* Large Brand Background Monogram */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none overflow-hidden select-none">
           <span className="font-display text-[22vw] leading-none whitespace-nowrap text-text uppercase">
