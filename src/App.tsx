@@ -787,7 +787,7 @@ function App() {
       </div>
 
       {/* 6. Navigation Header */}
-      <nav id="mainHeader" className="bg-surface/60 dark:bg-surface/60 backdrop-blur-xl fixed w-full top-0 border-b border-white/10 dark:border-white/10 z-50 transition-all duration-500 ease-in-out header-top">
+      <nav id="mainHeader" className="fixed w-full top-0 z-50 transition-all duration-500 ease-in-out header-top">
         <div className="flex justify-between items-center w-full px-6 md:px-20 py-6 max-w-[1440px] mx-auto">
           {/* Brand Logo */}
           <a
